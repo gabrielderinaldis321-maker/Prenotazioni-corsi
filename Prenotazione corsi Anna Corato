@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anna Corato - Prenotazione Corsi</title>
+    <title>Anna Corato - Prenotazione e Disdetta Corsi</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -144,6 +144,8 @@
         }
 
         .btn-container {
+            display: flex;
+            gap: 10px;
             margin-top: 5px;
         }
 
@@ -152,7 +154,7 @@
             color: #000000;
             border: 2px solid #ff007f;
             padding: 12px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 900;
             border-radius: 4px;
             cursor: pointer;
@@ -160,6 +162,17 @@
             transition: all 0.3s;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        button.btn-disdici {
+            background-color: #000000;
+            color: #ff007f;
+            border: 2px solid #ff007f;
+        }
+
+        button.btn-disdici:hover:not(:disabled) {
+            background-color: #ff007f;
+            color: #000000;
         }
 
         button:hover:not(:disabled) {
@@ -173,7 +186,7 @@
 
         button:disabled {
             background-color: #33001a;
-            color: #000000;
+            color: #550026;
             border-color: #33001a;
             cursor: not-allowed;
         }
@@ -194,7 +207,7 @@
 <body>
     <div class="container">
         <h2 class="brand-title">Anna Corato</h2>
-        <h1>🧘‍♀️ Prenota Corso</h1>
+        <h1>🧘‍♀️ Prenota o Disdici Corso</h1>
         <p class="subtitle">Seleziona attività, giorno e orario (Max 6 persone per slot)</p>
 
         <div class="dashboard-corsi">
@@ -237,8 +250,9 @@
                     </select>
                 </div>
 
-                <div class="form-group btn-container">
+                <div class="btn-container">
                     <button type="submit" id="submitBtn">PRENOTA</button>
+                    <button type="button" id="disdiciBtn" class="btn-disdici">DISDICI</button>
                 </div>
             </div>
         </form>
@@ -254,6 +268,7 @@
             const nomeInput = document.getElementById('nome');
             const cognomeInput = document.getElementById('cognome');
             const submitBtn = document.getElementById('submitBtn');
+            const disdiciBtn = document.getElementById('disdiciBtn');
             const bookingForm = document.getElementById('bookingForm');
             const formStatus = document.getElementById('formStatus');
             const listaStatoCorsi = document.getElementById('listaStatoCorsi');
@@ -355,6 +370,13 @@
                 localStorage.setItem(chiaveSlot, attuali + 1);
             }
 
+            function decrementaPosti(chiaveSlot) {
+                const attuali = getPostiOccupati(chiaveSlot);
+                if (attuali > 0) {
+                    localStorage.setItem(chiaveSlot, attuali - 1);
+                }
+            }
+
             function ripristinaCampi() {
                 nomeInput.disabled = false;
                 cognomeInput.disabled = false;
@@ -389,6 +411,7 @@
             giornoSelect.addEventListener('change', aggiornaOrari);
             orarioSelect.addEventListener('change', controllaSlot);
 
+            // Gestione Prenotazione
             bookingForm.addEventListener('submit', (e) => {
                 e.preventDefault();
 
@@ -419,6 +442,35 @@
                 const urlWhatsApp = `https://wa.me/${numeroAnna}?text=${testoMessaggio}`;
                 
                 mostraStato(`✅ Prenotazione registrata! Apertura WhatsApp...`, '#ff3399', '#1a000d', '#ff3399');
+                
+                setTimeout(() => {
+                    window.location.href = urlWhatsApp;
+                }, 800);
+            });
+
+            // Gestione Disdetta
+            disdiciBtn.addEventListener('click', () => {
+                const attivita = attivitaSelect.value;
+                const giorno = giornoSelect.value;
+                const orario = orarioSelect.value;
+                const nome = nomeInput.value;
+                const cognome = cognomeInput.value;
+
+                if (!attivita || !giorno || !orario || !nome || !cognome) {
+                    mostraStato('⚠️ Per disdire, compila Nome, Cognome, Attività, Giorno e Orario.', '#ff007f', '#33001a', '#ff007f');
+                    return;
+                }
+
+                const chiaveSlot = getChiaveSlot(attivita, giorno, orario);
+                decrementaPosti(chiaveSlot);
+                aggiornaDashboardCorsi();
+
+                const numeroAnna = "393484743769";
+                const testoMessaggio = `Ciao Anna, vorrei disdire la mia prenotazione per il corso di ${attivita} di ${giorno} alle ${orario}. Nome: ${nome} ${cognome}`;
+
+                const urlWhatsApp = `https://wa.me/${numeroAnna}?text=${encodeURIComponent(testoMessaggio)}`;
+                
+                mostraStato(`🗑️ Posto liberato! Apertura WhatsApp per la disdetta...`, '#ff3399', '#1a000d', '#ff3399');
                 
                 setTimeout(() => {
                     window.location.href = urlWhatsApp;
