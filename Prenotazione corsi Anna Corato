@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anna Corato - Prenotazione Corsi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ff007f;
+        }
+
+        .container {
+            background: #050003;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(255, 0, 127, 0.4);
+            width: 100%;
+            max-width: 550px;
+            box-sizing: border-box;
+            border: 2px solid #ff007f;
+        }
+
+        .brand-title {
+            color: #ff007f;
+            font-size: 32px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0 0 5px 0;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #ff007f;
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #cc0066;
+            margin-bottom: 20px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* Stile per il riepilogo dei corsi settimanali */
+        .dashboard-corsi {
+            background: #100008;
+            border: 1px solid #ff007f;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ff3399;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .slot-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .slot-item {
+            display: flex;
+            justify-content: space-between;
+            background: #000000;
+            padding: 7px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #33001a;
+            color: #ff007f;
+        }
+
+        .slot-item.esaurito {
+            border-color: #ff007f;
+            background: #1a000d;
+            color: #ff4da6;
+        }
+
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #ff007f;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #ff007f;
+            background-color: #000000;
+            color: #ff007f;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input::placeholder {
+            color: #880042;
+        }
+
+        input:disabled, select:disabled {
+            background-color: #1a000d;
+            color: #550026;
+            border-color: #550026;
+            cursor: not-allowed;
+        }
+
+        input:focus, select:focus {
+            border-color: #ff3399;
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+        }
+
+        .btn-container {
+            margin-top: 5px;
+        }
+
+        button {
+            background-color: #ff007f;
+            color: #000000;
+            border: 2px solid #ff007f;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 900;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #000000;
+            color: #ff007f;
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: #33001a;
+            color: #000000;
+            border-color: #33001a;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 13px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ff007f;
+            background-color: #000000;
+            color: #ff007f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="brand-title">Anna Corato</h2>
+        <h1>🧘‍♀️ Prenota Corso</h1>
+        <p class="subtitle">Seleziona attività, giorno e orario (Max 6 persone per slot)</p>
+
+        <div class="dashboard-corsi">
+            <div class="dashboard-title">📊 Stato Corsi di questa Settimana</div>
+            <div id="listaStatoCorsi" class="slot-grid"></div>
+        </div>
+
+        <form id="bookingForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" placeholder="Inserisci il nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cognome">Cognome</label>
+                    <input type="text" id="cognome" name="cognome" placeholder="Inserisci il cognome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="attivita">Attività</label>
+                    <select id="attivita" name="attivita" required>
+                        <option value="">Seleziona attività</option>
+                        <option value="Tabata">Tabata</option>
+                        <option value="Pilates">Pilates</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="giorno">Giorno</label>
+                    <select id="giorno" name="giorno" required>
+                        <option value="">Seleziona prima un'attività</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="orario">Orario</label>
+                    <select id="orario" name="orario" required>
+                        <option value="">Seleziona prima un giorno</option>
+                    </select>
+                </div>
+
+                <div class="form-group btn-container">
+                    <button type="submit" id="submitBtn">PRENOTA</button>
+                </div>
+            </div>
+        </form>
+
+        <div id="formStatus" class="status-message">Benvenuto! Seleziona i campi per procedere.</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const attivitaSelect = document.getElementById('attivita');
+            const giornoSelect = document.getElementById('giorno');
+            const orarioSelect = document.getElementById('orario');
+            const nomeInput = document.getElementById('nome');
+            const cognomeInput = document.getElementById('cognome');
+            const submitBtn = document.getElementById('submitBtn');
+            const bookingForm = document.getElementById('bookingForm');
+            const formStatus = document.getElementById('formStatus');
+            const listaStatoCorsi = document.getElementById('listaStatoCorsi');
+
+            const orariDisponibili = {
+                "Tabata": {
+                    giorni: ["Lunedì", "Mercoledì", "Venerdì"],
+                    orari: ["16:00 - 17:00"]
+                },
+                "Pilates": {
+                    giorni: ["Martedì", "Giovedì"],
+                    orari: ["16:00 - 17:00"]
+                }
+            };
+
+            function getNumeroSettimanaCorrente() {
+                const d = new Date();
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+                const annoInizio = new Date(d.getFullYear(), 0, 1);
+                const numeroSettimana = Math.ceil((((d - annoInizio) / 86400000) + 1) / 7);
+                return `${d.getFullYear()}-W${numeroSettimana}`;
+            }
+
+            function getChiaveSlot(attivita, giorno, orario) {
+                const settimana = getNumeroSettimanaCorrente();
+                return `${settimana}_${attivita}_${giorno}_${orario}`;
+            }
+
+            function mostraStato(messaggio, coloreTesto, coloreSfondo, coloreBordo) {
+                formStatus.textContent = messaggio;
+                formStatus.style.color = coloreTesto;
+                formStatus.style.backgroundColor = coloreSfondo;
+                formStatus.style.borderColor = coloreBordo;
+            }
+
+            function aggiornaDashboardCorsi() {
+                if (!listaStatoCorsi) return;
+                listaStatoCorsi.innerHTML = '';
+                
+                for (const [nomeAttivita, dati] of Object.entries(orariDisponibili)) {
+                    dati.giorni.forEach(giorno => {
+                        dati.orari.forEach(orario => {
+                            const chiave = getChiaveSlot(nomeAttivita, giorno, orario);
+                            const posti = parseInt(localStorage.getItem(chiave) || '0');
+                            
+                            const div = document.createElement('div');
+                            div.className = `slot-item ${posti >= 6 ? 'esaurito' : ''}`;
+                            
+                            const testoStato = posti >= 6 ? 'ESAURITO (6/6)' : `${posti}/6 posti`;
+                            div.innerHTML = `<span><b>${nomeAttivita}</b> (${giorno} - ${orario})</span> <span>${testoStato}</span>`;
+                            
+                            listaStatoCorsi.appendChild(div);
+                        });
+                    });
+                }
+            }
+
+            function aggiornaGiorni() {
+                const attivita = attivitaSelect.value;
+                giornoSelect.innerHTML = '<option value="">Seleziona giorno</option>';
+                orarioSelect.innerHTML = '<option value="">Seleziona orario</option>';
+                ripristinaCampi();
+                mostraStato("Seleziona giorno e orario per verificare la disponibilità.", "#ff007f", "#000000", "#ff007f");
+
+                if (attivita && orariDisponibili[attivita]) {
+                    orariDisponibili[attivita].giorni.forEach(giorno => {
+                        const opt = document.createElement('option');
+                        opt.value = giorno;
+                        opt.textContent = giorno;
+                        giornoSelect.appendChild(opt);
+                    });
+                }
+            }
+
+            function aggiornaOrari() {
+                const attivita = attivitaSelect.value;
+                const giorno = giornoSelect.value;
+                orarioSelect.innerHTML = '<option value="">Seleziona orario</option>';
+                ripristinaCampi();
+                mostraStato("Seleziona l'orario per procedere.", "#ff007f", "#000000", "#ff007f");
+
+                if (attivita && giorno && orariDisponibili[attivita]) {
+                    orariDisponibili[attivita].orari.forEach(orario => {
+                        const opt = document.createElement('option');
+                        opt.value = orario;
+                        opt.textContent = orario;
+                        orarioSelect.appendChild(opt);
+                    });
+                }
+            }
+
+            function getPostiOccupati(chiaveSlot) {
+                return parseInt(localStorage.getItem(chiaveSlot) || '0');
+            }
+
+            function incrementaPosti(chiaveSlot) {
+                const attuali = getPostiOccupati(chiaveSlot);
+                localStorage.setItem(chiaveSlot, attuali + 1);
+            }
+
+            function ripristinaCampi() {
+                nomeInput.disabled = false;
+                cognomeInput.disabled = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'PRENOTA';
+            }
+
+            function controllaSlot() {
+                const attivita = attivitaSelect.value;
+                const giorno = giornoSelect.value;
+                const orario = orarioSelect.value;
+
+                if (attivita && giorno && orario) {
+                    const chiaveSlot = getChiaveSlot(attivita, giorno, orario);
+                    const postiOccupati = getPostiOccupati(chiaveSlot);
+
+                    if (postiOccupati >= 6) {
+                        mostraStato('⛔ SUPERAMENTO LIMITE MASSIMO: Questo corso è al completo (6/6 posti esauriti).', '#ff007f', '#33001a', '#ff007f');
+                        nomeInput.disabled = true;
+                        cognomeInput.disabled = true;
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'CORSO ESAURITO';
+                    } else {
+                        const rimanenti = 6 - postiOccupati;
+                        mostraStato(`ℹ️ Posti occupati: ${postiOccupati}/6 (Disponibili: ${rimanenti})`, '#ff3399', '#1a000d', '#ff3399');
+                        ripristinaCampi();
+                    }
+                }
+            }
+
+            attivitaSelect.addEventListener('change', aggiornaGiorni);
+            giornoSelect.addEventListener('change', aggiornaOrari);
+            orarioSelect.addEventListener('change', controllaSlot);
+
+            bookingForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const attivita = attivitaSelect.value;
+                const giorno = giornoSelect.value;
+                const orario = orarioSelect.value;
+                const nome = nomeInput.value;
+                const cognome = cognomeInput.value;
+                
+                const chiaveSlot = getChiaveSlot(attivita, giorno, orario);
+                const postiOccupati = getPostiOccupati(chiaveSlot);
+
+                if (postiOccupati >= 6) {
+                    mostraStato('❌ Spiacenti, questo corso ha esaurito i posti disponibili!', '#ff007f', '#33001a', '#ff007f');
+                    return;
+                }
+                
+                incrementaPosti(chiaveSlot);
+                aggiornaDashboardCorsi();
+
+                const numeroAnna = "393484743769";
+                const testoMessaggio = `🧘‍♀️ *Nuova Prenotazione - Anna Corato*%0A` +
+                                       `👤 *Nome:* ${nome} ${cognome}%0A` +
+                                       `💪 *Attività:* ${attivita}%0A` +
+                                       `📅 *Giorno:* ${giorno}%0A` +
+                                       `⏰ *Orario:* ${orario}`;
+
+                const urlWhatsApp = `https://wa.me/${numeroAnna}?text=${testoMessaggio}`;
+                
+                mostraStato(`✅ Prenotazione registrata! Apertura WhatsApp...`, '#ff3399', '#1a000d', '#ff3399');
+                
+                setTimeout(() => {
+                    window.location.href = urlWhatsApp;
+                }, 800);
+            });
+
+            aggiornaDashboardCorsi();
+        });
+    </script>
+</body>
+</html>
